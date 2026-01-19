@@ -1,0 +1,196 @@
+syntax = "proto3";
+
+package tictactoe;
+
+import "google/api/annotations.proto";
+
+option go_package = "tictactoe/";
+
+// TicTacToe service provides APIs for playing tic-tac-toe games
+service TicTacToeService {
+  // CreateGame creates a new game and waits for an opponent
+  rpc CreateGame(CreateGameRequest) returns (CreateGameResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/games"
+      body: "*"
+    };
+  }
+  
+  // ListPendingGames returns all games waiting for an opponent
+  rpc ListPendingGames(ListPendingGamesRequest) returns (ListPendingGamesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games:pending"
+    };
+  }
+  
+  // JoinGame joins an existing pending game
+  rpc JoinGame(JoinGameRequest) returns (JoinGameResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/games/{game_id}/join"
+      body: "*"
+    };
+  }
+  
+  // MakeMove makes a move in an active game
+  rpc MakeMove(MakeMoveRequest) returns (MakeMoveResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/games/{game_id}/move"
+      body: "*"
+    };
+  }
+  
+  // GetGame retrieves the current state of a game
+  rpc GetGame(GetGameRequest) returns (GetGameResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{game_id}"
+    };
+  }
+  
+  // GetGameBoard retrieves the game board as a human-readable matrix
+  rpc GetGameBoard(GetGameBoardRequest) returns (GetGameBoardResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{game_id}/board"
+    };
+  }
+  
+  // GetUserStats retrieves win-lose-draw statistics for a user
+  rpc GetUserStats(GetUserStatsRequest) returns (GetUserStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users/{user_id}/stats"
+    };
+  }
+  
+  // StreamGameUpdates streams game state updates to connected players
+  // Note: Streaming not supported over REST, use WebSocket or gRPC directly
+  rpc StreamGameUpdates(StreamGameUpdatesRequest) returns (stream GameUpdate) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{game_id}/stream"
+    };
+  }
+}
+
+// Mark represents a cell state on the board
+enum Mark {
+  MARK_UNSPECIFIED = 0;
+  MARK_EMPTY = 1;
+  MARK_X = 2;
+  MARK_O = 3;
+}
+
+// GameStatus represents the current status of a game
+enum GameStatus {
+  GAME_STATUS_UNSPECIFIED = 0;
+  GAME_STATUS_PENDING = 1;      // Waiting for opponent
+  GAME_STATUS_IN_PROGRESS = 2;  // Game is active
+  GAME_STATUS_X_WON = 3;        // Player X won
+  GAME_STATUS_O_WON = 4;        // Player O won
+  GAME_STATUS_DRAW = 5;         // Game ended in draw
+}
+
+// Game represents a tic-tac-toe game
+message Game {
+  string game_id = 1;
+  string player_x_id = 2;        // First player (creator)
+  string player_o_id = 3;        // Second player (joiner)
+  int32 board_size = 4;          // Size of the board (NxN)
+  int32 win_length = 5;          // Number of consecutive marks to win
+  repeated Mark board = 6;       // Board state (row-major order)
+  Mark current_turn = 7;         // Whose turn it is
+  GameStatus status = 8;
+  int64 created_at = 9;          // Unix timestamp
+  int64 updated_at = 10;         // Unix timestamp
+}
+
+// CreateGameRequest creates a new game
+message CreateGameRequest {
+  string user_id = 1;
+  int32 board_size = 2;          // Optional: defaults to 3
+  int32 win_length = 3;          // Optional: defaults to 3
+}
+
+message CreateGameResponse {
+  Game game = 1;
+}
+
+// ListPendingGamesRequest lists games waiting for opponents
+message ListPendingGamesRequest {
+  int32 limit = 1;               // Optional: max games to return
+  int32 offset = 2;              // Optional: pagination offset
+}
+
+message ListPendingGamesResponse {
+  repeated Game games = 1;
+  int32 total_count = 2;
+}
+
+// JoinGameRequest joins an existing pending game
+message JoinGameRequest {
+  string user_id = 1;
+  string game_id = 2;
+}
+
+message JoinGameResponse {
+  Game game = 1;
+}
+
+// MakeMoveRequest makes a move in an active game
+message MakeMoveRequest {
+  string user_id = 1;
+  string game_id = 2;
+  int32 row = 3;
+  int32 col = 4;
+}
+
+message MakeMoveResponse {
+  Game game = 1;
+}
+
+// GetGameRequest retrieves a game by ID
+message GetGameRequest {
+  string game_id = 1;
+}
+
+message GetGameResponse {
+  Game game = 1;
+}
+
+// GetGameBoardRequest retrieves the game board as a matrix
+message GetGameBoardRequest {
+  string game_id = 1;
+}
+
+message GetGameBoardResponse {
+  string game_id = 1;
+  int32 board_size = 2;
+  repeated string rows = 3;          // Board as array of row strings (e.g., ["X|O|X", "O|X|O", "X|O|X"])
+  string board_display = 4;          // Full board as formatted string with newlines
+  string status = 5;                 // Human-readable status
+  string current_turn = 6;           // Who's turn it is (X, O, or N/A)
+  string player_x = 7;
+  string player_o = 8;
+}
+
+// GetUserStatsRequest retrieves stats for a user
+message GetUserStatsRequest {
+  string user_id = 1;
+}
+
+message GetUserStatsResponse {
+  string user_id = 1;
+  int32 wins = 2;
+  int32 losses = 3;
+  int32 draws = 4;
+  int32 total_games = 5;
+}
+
+// StreamGameUpdatesRequest subscribes to game updates
+message StreamGameUpdatesRequest {
+  string game_id = 1;
+  string user_id = 2;
+}
+
+// GameUpdate represents a game state change
+message GameUpdate {
+  Game game = 1;
+  string message = 2;
+}

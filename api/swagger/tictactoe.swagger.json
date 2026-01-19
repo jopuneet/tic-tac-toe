@@ -1,0 +1,584 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "tictactoe.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "TicTacToeService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/games": {
+      "post": {
+        "summary": "CreateGame creates a new game and waits for an opponent",
+        "operationId": "TicTacToeService_CreateGame",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tictactoeCreateGameResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/tictactoeCreateGameRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TicTacToeService"
+        ]
+      }
+    },
+    "/api/v1/games/{gameId}": {
+      "get": {
+        "summary": "GetGame retrieves the current state of a game",
+        "operationId": "TicTacToeService_GetGame",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tictactoeGetGameResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TicTacToeService"
+        ]
+      }
+    },
+    "/api/v1/games/{gameId}/board": {
+      "get": {
+        "summary": "GetGameBoard retrieves the game board as a human-readable matrix",
+        "operationId": "TicTacToeService_GetGameBoard",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tictactoeGetGameBoardResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TicTacToeService"
+        ]
+      }
+    },
+    "/api/v1/games/{gameId}/join": {
+      "post": {
+        "summary": "JoinGame joins an existing pending game",
+        "operationId": "TicTacToeService_JoinGame",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tictactoeJoinGameResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TicTacToeServiceJoinGameBody"
+            }
+          }
+        ],
+        "tags": [
+          "TicTacToeService"
+        ]
+      }
+    },
+    "/api/v1/games/{gameId}/move": {
+      "post": {
+        "summary": "MakeMove makes a move in an active game",
+        "operationId": "TicTacToeService_MakeMove",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tictactoeMakeMoveResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TicTacToeServiceMakeMoveBody"
+            }
+          }
+        ],
+        "tags": [
+          "TicTacToeService"
+        ]
+      }
+    },
+    "/api/v1/games/{gameId}/stream": {
+      "get": {
+        "summary": "StreamGameUpdates streams game state updates to connected players\nNote: Streaming not supported over REST, use WebSocket or gRPC directly",
+        "operationId": "TicTacToeService_StreamGameUpdates",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/tictactoeGameUpdate"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of tictactoeGameUpdate"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TicTacToeService"
+        ]
+      }
+    },
+    "/api/v1/games:pending": {
+      "get": {
+        "summary": "ListPendingGames returns all games waiting for an opponent",
+        "operationId": "TicTacToeService_ListPendingGames",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tictactoeListPendingGamesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Optional: max games to return",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "description": "Optional: pagination offset",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "TicTacToeService"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/stats": {
+      "get": {
+        "summary": "GetUserStats retrieves win-lose-draw statistics for a user",
+        "operationId": "TicTacToeService_GetUserStats",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tictactoeGetUserStatsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TicTacToeService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "TicTacToeServiceJoinGameBody": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        }
+      },
+      "title": "JoinGameRequest joins an existing pending game"
+    },
+    "TicTacToeServiceMakeMoveBody": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "row": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "col": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "MakeMoveRequest makes a move in an active game"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "tictactoeCreateGameRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "boardSize": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Optional: defaults to 3"
+        },
+        "winLength": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Optional: defaults to 3"
+        }
+      },
+      "title": "CreateGameRequest creates a new game"
+    },
+    "tictactoeCreateGameResponse": {
+      "type": "object",
+      "properties": {
+        "game": {
+          "$ref": "#/definitions/tictactoeGame"
+        }
+      }
+    },
+    "tictactoeGame": {
+      "type": "object",
+      "properties": {
+        "gameId": {
+          "type": "string"
+        },
+        "playerXId": {
+          "type": "string",
+          "title": "First player (creator)"
+        },
+        "playerOId": {
+          "type": "string",
+          "title": "Second player (joiner)"
+        },
+        "boardSize": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Size of the board (NxN)"
+        },
+        "winLength": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of consecutive marks to win"
+        },
+        "board": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/tictactoeMark"
+          },
+          "title": "Board state (row-major order)"
+        },
+        "currentTurn": {
+          "$ref": "#/definitions/tictactoeMark",
+          "title": "Whose turn it is"
+        },
+        "status": {
+          "$ref": "#/definitions/tictactoeGameStatus"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Unix timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Unix timestamp"
+        }
+      },
+      "title": "Game represents a tic-tac-toe game"
+    },
+    "tictactoeGameStatus": {
+      "type": "string",
+      "enum": [
+        "GAME_STATUS_UNSPECIFIED",
+        "GAME_STATUS_PENDING",
+        "GAME_STATUS_IN_PROGRESS",
+        "GAME_STATUS_X_WON",
+        "GAME_STATUS_O_WON",
+        "GAME_STATUS_DRAW"
+      ],
+      "default": "GAME_STATUS_UNSPECIFIED",
+      "description": "- GAME_STATUS_PENDING: Waiting for opponent\n - GAME_STATUS_IN_PROGRESS: Game is active\n - GAME_STATUS_X_WON: Player X won\n - GAME_STATUS_O_WON: Player O won\n - GAME_STATUS_DRAW: Game ended in draw",
+      "title": "GameStatus represents the current status of a game"
+    },
+    "tictactoeGameUpdate": {
+      "type": "object",
+      "properties": {
+        "game": {
+          "$ref": "#/definitions/tictactoeGame"
+        },
+        "message": {
+          "type": "string",
+          "title": "Human-readable update message"
+        }
+      },
+      "title": "GameUpdate represents a game state change"
+    },
+    "tictactoeGetGameBoardResponse": {
+      "type": "object",
+      "properties": {
+        "gameId": {
+          "type": "string"
+        },
+        "boardSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Board as array of row strings (e.g., [\"X|O|X\", \"O|X|O\", \"X|O|X\"])"
+        },
+        "boardDisplay": {
+          "type": "string",
+          "title": "Full board as formatted string with newlines"
+        },
+        "status": {
+          "type": "string",
+          "title": "Human-readable status"
+        },
+        "currentTurn": {
+          "type": "string",
+          "title": "Who's turn it is (X, O, or N/A)"
+        },
+        "playerX": {
+          "type": "string"
+        },
+        "playerO": {
+          "type": "string"
+        }
+      }
+    },
+    "tictactoeGetGameResponse": {
+      "type": "object",
+      "properties": {
+        "game": {
+          "$ref": "#/definitions/tictactoeGame"
+        }
+      }
+    },
+    "tictactoeGetUserStatsResponse": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "wins": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "losses": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "draws": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalGames": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "tictactoeJoinGameResponse": {
+      "type": "object",
+      "properties": {
+        "game": {
+          "$ref": "#/definitions/tictactoeGame"
+        }
+      }
+    },
+    "tictactoeListPendingGamesResponse": {
+      "type": "object",
+      "properties": {
+        "games": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/tictactoeGame"
+          }
+        },
+        "totalCount": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "tictactoeMakeMoveResponse": {
+      "type": "object",
+      "properties": {
+        "game": {
+          "$ref": "#/definitions/tictactoeGame"
+        }
+      }
+    },
+    "tictactoeMark": {
+      "type": "string",
+      "enum": [
+        "MARK_UNSPECIFIED",
+        "MARK_EMPTY",
+        "MARK_X",
+        "MARK_O"
+      ],
+      "default": "MARK_UNSPECIFIED",
+      "title": "Mark represents a cell state on the board"
+    }
+  }
+}
